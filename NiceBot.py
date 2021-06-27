@@ -1,11 +1,11 @@
-from twitchbot import Twitch
+import socket
+from twitchbot import TwitchBot
 from twitchbot.settings import BOT_USERNAME, CLIENT_ID, CLIENT_SECRET, TOKEN
 
 
-
 def main():
-    twitch = Twitch(BOT_USERNAME, CLIENT_ID, TOKEN, 'thestroid')
-    twitch.start()
+    bot = TwitchBot()
+    bot.connect()
 
 
 if __name__ == "__main__":

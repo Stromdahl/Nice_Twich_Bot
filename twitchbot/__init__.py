@@ -1,23 +1,31 @@
+from twitchbot.connection import ServerConnection
+from .message import Message
+from abc import ABC, abstractmethod
 
-from twitchbot.client import Client
-from twitchbot.settings import BOT_USERNAME, CLIENT_ID, CLIENT_SECRET, TOKEN
+class Client(ABC):
 
-class TwitchBot:
-    def __init__(self) -> None:
-        server='irc.chat.twitch.tv'
+    def __init__(self, username, channels, oauth_token) -> None:
+        server = 'irc.chat.twitch.tv'
         port=6667
-        username = 'NiceLeaderboard'
-        channels = ['thestroid']
-        oauth_token = TOKEN
-        self.irc_client = Client(server, port, username, channels, oauth_token)
+        self.connection = ServerConnection(server, port)
+        self.oauth_token = oauth_token
+        self.username = username
+        self.channels = channels
 
     def connect(self):
-        self.irc_client.connect()
-        self.irc_client.loop_for_messages()
+        self.connection.connect()
+        self.connection.pass_(self.oauth_token)
+        self.connection.nick(self.username)
+        for channel in self.channels:
+            self.connection.join(channel)
+            self.connection.privmsg(channel, 'Im alive!')
 
-def main():
-    bot = TwitchBot()
-    bot.connect()
+    @abstractmethod
+    def on_message(self, message:Message):
+        raise NotImplementedError("on_message not implemented")
 
-if __name__ == "__main__":
-    main()
+    def loop_for_messages(self):
+        while  True:
+            messages = self.connection.handle_messages()
+            for message in messages:
+                self.on_message(message)

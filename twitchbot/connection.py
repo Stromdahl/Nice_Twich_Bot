@@ -48,14 +48,12 @@ class Connection:
         # The string should not contain any carriage return other than the
         # one added here.
         if '\n' in string:
-            msg = "Carriage returns not allowed in privmsg(text)"
-            raise InvalidCharacters(msg)
+            raise InvalidCharacters("Carriage returns not allowed in privmsg(text)")
         bytes = self.encode(string) + b'\r\n'
         # According to the RFC http://tools.ietf.org/html/rfc2812#page-6,
         # clients should not transmit more than 512 bytes.
         if len(bytes) > 512:
-            msg = "Messages limited to 512 bytes including CR/LF"
-            raise MessageTooLong(msg)
+            raise MessageTooLong("Messages limited to 512 bytes including CR/LF")
         return bytes
 
     def send_raw(self, string):

@@ -18,13 +18,13 @@ class TwitchBot(Client):
         if command == self.command:
             print(args)
 
-    def connect(self):
+    def run(self):
         super().connect()
         super().loop_for_messages()
 
 def main():
     bot = TwitchBot()
-    bot.connect()
+    bot.run()
 
 if __name__ == "__main__":
     main()

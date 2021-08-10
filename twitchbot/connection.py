@@ -1,7 +1,7 @@
 import socket
 import logging
 import re
-from .message import Message
+from .message import Message, MessageFactory
 
 logging.basicConfig(level=logging.INFO)
 
@@ -69,7 +69,7 @@ class Connection:
         data = self.socket.recv(2048).decode()
         return data.split('\r\n')
 
-class ServerConnection(Connection):
+class MessageHandler(Connection):
     def __init__(self, server, port) -> None:
         super().__init__(server, port)
 
@@ -99,10 +99,7 @@ class ServerConnection(Connection):
         for data in self.receive_data():
             logging.debug(f'> {data}')
 
-            if len(data) == 0:
-                break
-
-            message = parse_msg(data)
+            message = MessageFactory().get_message(data)
             if message:
                 if message.irc_command == 'PING':
                     self.handle_ping()
@@ -114,47 +111,6 @@ class ServerConnection(Connection):
 
 def _hide_pass(string):
     return string if 'PASS' not in string else 'PASS *************************************'
-
-
-def parse_msg(msg):
-    result = re.findall(pattern=r':tmi.twitch.tv (\d{3}) (\S+) :(.+)', string=msg)
-    if result:
-        result = result[0]
-        message = Message(msg, irc_command=result[0], channel=result[1], text=result[2])
-        return message
-
-    result = re.findall(pattern=r':(\S+).tmi.twitch.tv (\d{3}) \1 (\S+) :(.+)', string=msg)
-    if result:
-        result = result[0]
-        message = Message(msg, user=result[0], irc_command=result[1], channel=result[2], text=result[3])
-        return message
-
-    result = re.findall(pattern=r':(\S+).tmi.twitch.tv (\d{3}) \1 = (\S+) :(.+)', string=msg)
-    if result:
-        result = result[0]
-        message = Message(msg, user=result[0], irc_command=result[1], channel=result[2], text=result[3])
-        return message
-
-    result = re.findall(pattern=r':(\S+)!\1@\1.tmi.twitch.tv (\S+) (\S+) :(.+)', string=msg)
-    if result:
-        result = result[0]
-        message = Message(msg, user=result[0], irc_command=result[1], channel=result[2], text=result[3])
-        return message
-
-    result = re.findall(pattern=r':(\S+)!\1@\1.tmi.twitch.tv (\S+) (\S+)', string=msg)
-    if result:
-        result = result[0]
-        message = Message(msg, user=result[0], irc_command=result[1], channel=result[2])
-        return message
-
-    result = re.findall(pattern=r'(\S+) :(.+)', string=msg)
-    if result:
-        result = result[0]
-        message = Message(msg, irc_command=result[0], text=result[1])
-        return message
-
-    return None
-
 
 def get_user_from_prefix(prefix):
     domain = prefix.split('!')[0]

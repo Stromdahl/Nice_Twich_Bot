@@ -1,4 +1,4 @@
-from twitchbot.connection import ServerConnection
+from twitchbot.connection import MessageHandler
 from .message import Message
 from abc import ABC, abstractmethod
 
@@ -7,7 +7,7 @@ class Client(ABC):
     def __init__(self, username, channels, oauth_token) -> None:
         server = 'irc.chat.twitch.tv'
         port=6667
-        self.connection = ServerConnection(server, port)
+        self.connection = MessageHandler(server, port)
         self.oauth_token = oauth_token
         self.username = username
         self.channels = channels
